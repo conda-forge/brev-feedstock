@@ -63,7 +63,8 @@ about:
   license: MIT
   license_file:
     - LICENSE
-    - library_licenses/**/**/LICENSE
+    - library_licenses/**/**/LICENSE*
+    - library_licenses/**/**/NOTICE*
   documentation: https://docs.nvidia.com/brev/latest/getting-started.html
   repository: https://github.com/brevdev/brev-cli
 
