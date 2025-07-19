@@ -7,7 +7,7 @@
 
 [project]
 name = "brev-feedstock"
-version = "3.50.1"  # conda-smithy version used to generate this file
+version = "3.51.1"  # conda-smithy version used to generate this file
 description = "Pixi configuration for conda-forge/brev-feedstock"
 authors = ["@conda-forge/brev"]
 channels = ["conda-forge"]
