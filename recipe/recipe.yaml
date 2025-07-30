@@ -11,12 +11,12 @@ source:
   sha256: 265ef0698aa8d6b9fd7311b5aa16e2e0a2274dd4a2f3f01f1a035250825b8724
 
 build:
-  number: 0
+  number: 1
   skip:
     - win
   script:
     - go-licenses save --save_path $SRC_DIR/library_licenses .
-    - GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/brev-cli.Version=${{ version }}" -v -o ${PREFIX}/bin/brev
+    - GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/pkg/cmd/version.Version=${{ version }}" -v -o ${PREFIX}/bin/brev
     # Default to no cross-compile
     - export BREV="${PREFIX}/bin/brev"
     - if: unix and target_platform != build_platform
@@ -25,7 +25,7 @@ build:
         - if: build_platform == "linux-64" or build_platform == "osx-64"
           # Fail if build_platform changes in future to non-x86_64 arch
           then: export GOARCH=amd64
-        - GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/brev-cli.Version=${{ version }}" -v -o ${BUILD_PREFIX}/bin/brev
+        - GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/pkg/cmd/version.Version=${{ version }}" -v -o ${BUILD_PREFIX}/bin/brev
         - export BREV="${BUILD_PREFIX}/bin/brev"
 
     # Install bash, zsh, and fish completions
