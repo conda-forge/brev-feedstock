@@ -39,7 +39,7 @@ build:
 requirements:
   build:
     - ${{ stdlib("c") }}
-    - ${{ compiler("c") }}
+    - ${{ compiler("cxx") }}
     - ${{ compiler("go-cgo") }}
     - go-licenses
 
