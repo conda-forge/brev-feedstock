@@ -1,6 +1,6 @@
 context:
   name: brev
-  version: "0.6.317"
+  version: "0.6.318"
 
 package:
   name: ${{ name|lower }}
@@ -8,14 +8,14 @@ package:
 
 source:
   url: https://github.com/brevdev/brev-cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: c1fa2cd924befad87d8942c0cef2a8c8b57283d4ca9518ec050d2df61322e5e6
+  sha256: da3c6673da7d84df545c28efa5dee728e6c78769f568a040daefa67e3dcda6ed
 
 build:
   number: 0
   skip:
     - win
   script:
-    - go-licenses save --save_path $SRC_DIR/library_licenses .
+    - go-licenses save --save_path $SRC_DIR/library_licenses . --ignore="buf.build/gen/go/brevdev/protoc-gen-gotag/protocolbuffers/go/tagger"
     - GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/pkg/cmd/version.Version=v${{ version }}" -v -o ${PREFIX}/bin/brev
     # Default to no cross-compile
     - export BREV="${PREFIX}/bin/brev"
@@ -39,7 +39,8 @@ build:
 requirements:
   build:
     - ${{ stdlib("c") }}
-    - ${{ compiler('go-nocgo') }}
+    - ${{ compiler("cxx") }}
+    - ${{ compiler("go-cgo") }}
     - go-licenses
 
 tests:
