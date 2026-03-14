@@ -1,6 +1,6 @@
 context:
   name: brev
-  version: "0.6.317"
+  version: "0.6.321"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/brevdev/brev-cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: c1fa2cd924befad87d8942c0cef2a8c8b57283d4ca9518ec050d2df61322e5e6
+  sha256: c4f33bd386f240962f3eeab90023f184514733d4891e02c905d4e4d5a2e7ffc5
 
 build:
   number: 0
