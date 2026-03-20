@@ -1,9 +1,8 @@
 context:
-  name: brev
   version: "0.6.318"
 
 package:
-  name: ${{ name|lower }}
+  name: brev
   version: ${{ version }}
 
 source:
