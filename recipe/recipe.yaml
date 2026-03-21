@@ -1,21 +1,38 @@
 context:
-  name: brev
-  version: "0.6.317"
+  version: "0.6.318"
 
 package:
-  name: ${{ name|lower }}
+  name: brev
   version: ${{ version }}
 
 source:
   url: https://github.com/brevdev/brev-cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: c1fa2cd924befad87d8942c0cef2a8c8b57283d4ca9518ec050d2df61322e5e6
+  sha256: da3c6673da7d84df545c28efa5dee728e6c78769f568a040daefa67e3dcda6ed
 
 build:
   number: 0
   skip:
     - win
   script:
-    - go-licenses save --save_path $SRC_DIR/library_licenses .
+    # go-nvml uses dlopen/dlsym to resolve NVML symbols at runtime. On systems
+    # without NVIDIA drivers, go-nvml detects the missing library and gracefully
+    # degrades without calling the NVML functions. Set '-z lazy' linker flag to
+    # ensure the symbols are only resolved when actually called, allowing for use
+    # without NVIDIA drivers.
+    # c.f. https://sourceware.org/binutils/docs/ld/Options.html
+    - export CGO_LDFLAGS="${CGO_LDFLAGS} -Wl,-z,lazy"
+
+    # Set the plt compiler flag to ensure a Procedure Linkage Table (PLT) for
+    # indirect function calls. The alternative is the default for conda-forge's c-compiler
+    # flags, of -fno-plt which uses a Global Offset Table (GOT). This would lead
+    # to R_*_GLOB_DAT symbols that are always resolved eagerly at load time, even
+    # if '-Wl,-z,lazy' is used. As go-nvml uses dlopen/dlsym to resolve NVML
+    # symbols at runtime, the PLT is necessary to allow lazy binding of these
+    # symbols with '-Wl,-z,lazy'.
+    # c.f. https://gcc.gnu.org/onlinedocs/gcc/Code-Gen-Options.html#index-fno-plt
+    - export CGO_CFLAGS="${CGO_CFLAGS} -fplt"
+
+    - go-licenses save --save_path $SRC_DIR/library_licenses . --ignore="buf.build/gen/go/brevdev/protoc-gen-gotag/protocolbuffers/go/tagger"
     - GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/pkg/cmd/version.Version=v${{ version }}" -v -o ${PREFIX}/bin/brev
     # Default to no cross-compile
     - export BREV="${PREFIX}/bin/brev"
@@ -25,7 +42,11 @@ build:
         - if: build_platform == "linux-64" or build_platform == "osx-64"
           # Fail if build_platform changes in future to non-x86_64 arch
           then: export GOARCH=amd64
-        - GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/pkg/cmd/version.Version=v${{ version }}" -v -o ${BUILD_PREFIX}/bin/brev
+        # For cross-compiling, override CONDA_BUILD_SYSROOT to point to the
+        # sysroot for the build platform (x86-64), and use the appropriate CC
+        # for the build platform ($CC_FOR_BUILD) to compile against the correct
+        # headers.
+        - CONDA_BUILD_SYSROOT="${BUILD_PREFIX}/x86_64-conda-linux-gnu/sysroot" CC="${CC_FOR_BUILD}" GOOS="${GOOS}" GOARCH="${GOARCH}" go build -ldflags="-s -w -X github.com/brevdev/brev-cli/pkg/cmd/version.Version=v${{ version }}" -v -o ${BUILD_PREFIX}/bin/brev
         - export BREV="${BUILD_PREFIX}/bin/brev"
 
     # Install bash, zsh, and fish completions
@@ -39,7 +60,8 @@ build:
 requirements:
   build:
     - ${{ stdlib("c") }}
-    - ${{ compiler('go-nocgo') }}
+    - ${{ compiler("cxx") }}
+    - ${{ compiler("go-cgo") }}
     - go-licenses
 
 tests:
